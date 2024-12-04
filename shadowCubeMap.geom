@@ -1,24 +1,31 @@
 #version 330 core
+
+// Входная геометрия — треугольники
 layout (triangles) in;
+// Выходная геометрия — полоска треугольников (triangle strip), максимум 18 вершин
 layout (triangle_strip, max_vertices=18) out;
 
+// Массив матриц для преобразования в проекции источника света (6 сторон кубической карты)
 uniform mat4 shadowMatrices[6];
 
+// Позиция фрагмента в пространстве источника света, передается во фрагментный шейдер
 out vec4 FragPos;
 
 void main()
 {
+    // Перебираем 6 граней кубической карты теней
     for(int face = 0; face < 6; ++face)
     {
-        // Sets the face we are currently working on
+        // Устанавливаем текущую грань, с которой работаем
         gl_Layer = face;
+        // Перебираем три вершины входного треугольника
         for(int i = 0; i < 3; i++)
         {
-            // Make transformed vertex
-            FragPos = gl_in[i].gl_Position;
-            gl_Position = shadowMatrices[face] * FragPos;
-            EmitVertex();
+            // Создаем преобразованную вершину
+            FragPos = gl_in[i].gl_Position; // Входная позиция вершины
+            gl_Position = shadowMatrices[face] * FragPos; // Преобразуем позицию для текущей грани
+            EmitVertex(); // Генерируем новую вершину
         }
-        EndPrimitive();
+        EndPrimitive(); // Завершаем текущий примитив (треугольник)
     }
 }
